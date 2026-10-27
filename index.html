@@ -5,12 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>Obsidianを開く</title>
-<style>body{font-family:system-ui,sans-serif;max-width:36rem;margin:12vh auto;padding:1.5rem;line-height:1.7}a{display:inline-block;background:#7053b5;color:white;text-decoration:none;border-radius:12px;padding:14px 22px;font-weight:700}</style>
+<style>
+body{font-family:system-ui,sans-serif;max-width:38rem;margin:10vh auto;padding:1.5rem;line-height:1.7;color:#24212c}
+a.button{display:inline-block;background:#7053b5;color:white;text-decoration:none;border-radius:12px;padding:14px 22px;font-weight:700}
+small{color:#666} #status{margin-top:1rem}
+</style>
 </head>
 <body>
-<h1>Obsidian起動テスト</h1>
-<p>ボタンを押すと、この端末のObsidianアプリを開こうとします。</p>
-<a href="obsidian://open">Obsidianを開く</a>
-<p><small>このページはノート名・本文・認証情報を収集しません。自動転送や外部スクリプトは使用していません。</small></p>
+<h1>Obsidianを開く</h1>
+<p id="description">端末内のObsidianを開きます。</p>
+<a id="launch" class="button" href="obsidian://open">Obsidianを開く</a>
+<p id="status" role="status"></p>
+<p><small>自動起動を試します。起動しない場合はボタンを押してください。ノート本文や認証情報は送信しません。</small></p>
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const vault = params.get('vault');
+  const file = params.get('file');
+  // Only permit Obsidian's open operation, with bounded plain-text parameters.
+  const valid = value => value !== null && value.length > 0 && value.length <= 500 && !/[\u0000-\u001f\u007f]/.test(value);
+  let uri = 'obsidian://open';
+  if (vault !== null || file !== null) {
+    if (!valid(vault) || (file !== null && !valid(file))) {
+      document.getElementById('status').textContent = 'リンクの指定が不正です。';
+      return;
+    }
+    uri += '?vault=' + encodeURIComponent(vault);
+    if (file !== null) uri += '&file=' + encodeURIComponent(file);
+    document.getElementById('description').textContent = file ? '指定したObsidianノートを開きます。' : '指定したVaultを開きます。';
+  }
+  const link = document.getElementById('launch');
+  link.href = uri;
+  // Automatic custom-scheme navigation can be blocked without a user gesture.
+  // Keep a manual link visible as a reliable fallback.
+  try { window.location.href = uri; } catch (_) {}
+})();
+</script>
 </body>
 </html>
